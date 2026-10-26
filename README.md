@@ -1,10 +1,10 @@
-﻿# NockAI
+# NockAI
 
 Win11 hotkey calculator. **Ctrl+Space**, type math or English, get an answer. Tray app, low RAM.
 
 AI turns natural language into an expression. **mXparser** does the actual math - so the model doesn't invent the number.
 
-![.NET 9](https://img.shields.io/badge/.NET-9-512BD4) ![Windows](https://img.shields.io/badge/Windows-11%20%2F%2010-0078D4) ![License](https://img.shields.io/badge/license-MIT-green)
+![.NET 9](https://img.shields.io/badge/.NET-9-512BD4) ![Windows](https://img.shields.io/badge/Windows-11%20%2F%2010-0078D4) ![License](https://img.shields.io/badge/license-MIT-green) ![npm](https://img.shields.io/npm/v/@xusnitdinov/nockai)
 
 ## Install (Windows)
 
@@ -60,7 +60,7 @@ Tray icon: left-click open, right-click Exit.
 - Stats: mean / median / mode / range / variance, frequency means
 - Algebra: `12n=144 find the n`
 - Explain mode + follow-ups (`more examples pls`)
-- Nice fractions: `(8-3)/8` → **5/8** (0.625)
+- Nice fractions: `(8-3)/8` ? **5/8** (0.625)
 
 Local patterns answer without the network when they can. Groq is only for wordy / explain stuff.
 
