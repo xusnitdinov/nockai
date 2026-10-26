@@ -1,0 +1,39 @@
+{
+  "name": "nockai",
+  "version": "0.1.0",
+  "description": "NockAI - Win11 Ctrl+Space calculator installer (npx nockai)",
+  "bin": {
+    "nockai": "bin/nockai.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "win32"
+  ],
+  "keywords": [
+    "nockai",
+    "calculator",
+    "windows",
+    "hotkey",
+    "groq",
+    "math"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xusnitdinov/nockai.git",
+    "directory": "npm"
+  },
+  "homepage": "https://github.com/xusnitdinov/nockai",
+  "bugs": {
+    "url": "https://github.com/xusnitdinov/nockai/issues"
+  },
+  "author": "Xusnitdinov Azizbek",
+  "license": "MIT",
+  "type": "commonjs"
+}
