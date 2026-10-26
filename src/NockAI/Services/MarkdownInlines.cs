@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace QuickCalcAI.Services;
+namespace NockAI.Services;
 
 /// <summary>
 /// Tiny markdown subset: **bold**, ==highlight==, `code`, newlines, "- " bullets.

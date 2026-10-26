@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace QuickCalcAI.Services;
+namespace NockAI.Services;
 
 /// <summary>
 /// Message-only HWND that receives WM_HOTKEY without touching the WinUI window proc.
@@ -31,7 +31,7 @@ public sealed class HotkeyService : IDisposable
             cbSize = (uint)Marshal.SizeOf<WndClassEx>(),
             lpfnWndProc = Marshal.GetFunctionPointerForDelegate(_wndProc),
             hInstance = GetModuleHandle(null),
-            lpszClassName = "QuickCalcAI_HotkeyMsg"
+            lpszClassName = "NockAI_HotkeyMsg"
         };
 
         var atom = RegisterClassEx(ref wc);
@@ -39,7 +39,7 @@ public sealed class HotkeyService : IDisposable
             throw new InvalidOperationException("RegisterClassEx failed for hotkey window.");
 
         _hwnd = CreateWindowEx(
-            0, (IntPtr)atom, "QuickCalcAI Hotkey",
+            0, (IntPtr)atom, "NockAI Hotkey",
             0, 0, 0, 0, 0,
             new IntPtr(-3), // HWND_MESSAGE
             IntPtr.Zero, wc.hInstance, IntPtr.Zero);

@@ -8,4 +8,4 @@ Animation approach based on open-source MIT recreations:
 - NVActivityIndicatorView LineSpinFadeLoader
   https://github.com/ninjaprox/NVActivityIndicatorView  (MIT)
 
-Generated asset for QuickCalcAI; not an Apple trademarked asset file.
+Generated asset for NockAI; not an Apple trademarked asset file.

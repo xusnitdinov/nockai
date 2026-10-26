@@ -1,4 +1,4 @@
-<Application x:Class="QuickCalcAI.App"
+<Application x:Class="NockAI.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ShutdownMode="OnExplicitShutdown">

@@ -6,8 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <RootNamespace>QuickCalcAI</RootNamespace>
-    <AssemblyName>QuickCalcAI</AssemblyName>
+    <RootNamespace>NockAI</RootNamespace>
+    <AssemblyName>NockAI</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>x64</Platforms>
   </PropertyGroup>

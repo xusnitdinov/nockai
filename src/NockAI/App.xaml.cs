@@ -1,7 +1,7 @@
 ﻿using System.Windows;
-using QuickCalcAI.Services;
+using NockAI.Services;
 
-namespace QuickCalcAI;
+namespace NockAI;
 
 public partial class App : Application
 {
@@ -45,7 +45,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "QuickCalcAI", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(ex.Message, "NockAI", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown();
         }
     }

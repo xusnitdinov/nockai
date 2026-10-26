@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 
-namespace QuickCalcAI.Services;
+namespace NockAI.Services;
 
 /// <summary>
 /// Lightweight Win32 notify-icon tray.
@@ -41,7 +41,7 @@ public sealed class TrayService : IDisposable
             cbSize = (uint)Marshal.SizeOf<WndClassEx>(),
             lpfnWndProc = Marshal.GetFunctionPointerForDelegate(_wndProc),
             hInstance = GetModuleHandle(null),
-            lpszClassName = "QuickCalcAI_TrayMsg"
+            lpszClassName = "NockAI_TrayMsg"
         };
 
         var atom = RegisterClassEx(ref wc);
@@ -49,7 +49,7 @@ public sealed class TrayService : IDisposable
             throw new InvalidOperationException("RegisterClassEx failed for tray window.");
 
         _hwnd = CreateWindowEx(
-            0, (IntPtr)atom, "QuickCalcAI Tray",
+            0, (IntPtr)atom, "NockAI Tray",
             0, 0, 0, 0, 0,
             new IntPtr(-3),
             IntPtr.Zero, wc.hInstance, IntPtr.Zero);
@@ -57,7 +57,7 @@ public sealed class TrayService : IDisposable
         if (_hwnd == IntPtr.Zero)
             throw new InvalidOperationException("CreateWindowEx failed for tray window.");
 
-        var data = BuildNotifyData("QuickCalcAI - Ctrl+Space");
+        var data = BuildNotifyData("NockAI - Ctrl+Space");
         _added = Shell_NotifyIcon(NimAdd, ref data);
     }
 
@@ -100,7 +100,7 @@ public sealed class TrayService : IDisposable
     private void ShowContextMenu()
     {
         var menu = CreatePopupMenu();
-        AppendMenu(menu, 0, 1, "Open QuickCalcAI");
+        AppendMenu(menu, 0, 1, "Open NockAI");
         AppendMenu(menu, 0, 2, "Exit");
 
         GetCursorPos(out var pt);

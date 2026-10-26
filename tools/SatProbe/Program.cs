@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Text.Json;
-using QuickCalcAI.Services;
+using NockAI.Services;
 
 var secrets = JsonSerializer.Deserialize<AppSecrets>(
-    File.ReadAllText(@"C:\Users\user\quickCalcAI\src\QuickCalcAI\Secrets.local.json"),
+    File.ReadAllText(@"C:\Users\user\quickCalcAI\src\NockAI\Secrets.local.json"),
     new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
 using var groq = new GroqParser(secrets.GroqApiKey, secrets.GroqModel);
 var calc = new CalculatorService(new MathEngine(), groq);

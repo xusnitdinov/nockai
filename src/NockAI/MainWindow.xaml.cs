@@ -3,10 +3,10 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
-using QuickCalcAI.Services;
+using NockAI.Services;
 using WpfAnimatedGif;
 
-namespace QuickCalcAI;
+namespace NockAI;
 
 public partial class MainWindow : Window
 {

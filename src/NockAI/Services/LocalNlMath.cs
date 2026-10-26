@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace QuickCalcAI.Services;
+namespace NockAI.Services;
 
 /// <summary>
 /// Cheap local NL → expression for common calculator phrases.

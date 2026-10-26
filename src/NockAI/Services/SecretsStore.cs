@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text.Json;
 
-namespace QuickCalcAI.Services;
+namespace NockAI.Services;
 
 public sealed class AppSecrets
 {
@@ -22,7 +22,7 @@ public static class SecretsStore
     public static string AppDataDir =>
         Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "QuickCalcAI");
+            "NockAI");
 
     public static string AppDataSecretsPath => Path.Combine(AppDataDir, "Secrets.local.json");
 
@@ -37,9 +37,19 @@ public static class SecretsStore
                 continue;
 
             var secrets = ReadFile(path);
-            if (!string.IsNullOrWhiteSpace(secrets.GroqApiKey) &&
-                !secrets.GroqApiKey.Contains("your_key", StringComparison.OrdinalIgnoreCase))
-                return secrets;
+            if (string.IsNullOrWhiteSpace(secrets.GroqApiKey) ||
+                secrets.GroqApiKey.Contains("your_key", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            // Copy legacy QuickCalcAI key into NockAI AppData
+            if (!string.Equals(path, AppDataSecretsPath, StringComparison.OrdinalIgnoreCase) &&
+                path.Contains("QuickCalcAI", StringComparison.OrdinalIgnoreCase) &&
+                !File.Exists(AppDataSecretsPath))
+            {
+                try { Save(secrets, preferAppData: true); } catch { /* ignore */ }
+            }
+
+            return secrets;
         }
 
         throw new FileNotFoundException(
@@ -78,6 +88,12 @@ public static class SecretsStore
     {
         yield return LocalSecretsPath;
         yield return AppDataSecretsPath;
+
+        // One-time migrate from old QuickCalcAI install
+        yield return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "QuickCalcAI",
+            "Secrets.local.json");
     }
 
     private static AppSecrets ReadFile(string path)

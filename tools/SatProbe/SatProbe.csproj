@@ -7,6 +7,6 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\QuickCalcAI\QuickCalcAI.csproj" />
+    <ProjectReference Include="..\..\src\NockAI\NockAI.csproj" />
   </ItemGroup>
 </Project>

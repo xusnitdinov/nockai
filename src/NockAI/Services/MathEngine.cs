@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using org.mariuszgromada.math.mxparser;
 
-namespace QuickCalcAI.Services;
+namespace NockAI.Services;
 
 public sealed class MathEngine
 {
@@ -20,7 +20,7 @@ public sealed class MathEngine
 
     static MathEngine()
     {
-        License.iConfirmNonCommercialUse("QuickCalcAI");
+        License.iConfirmNonCommercialUse("NockAI");
     }
 
     public bool TryEvaluate(string expression, out string formattedResult) =>

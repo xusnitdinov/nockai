@@ -1,7 +1,7 @@
-<Window x:Class="QuickCalcAI.SetupWindow"
+<Window x:Class="NockAI.SetupWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="QuickCalcAI setup"
+        Title="NockAI setup"
         Width="520"
         Height="320"
         WindowStartupLocation="CenterScreen"
@@ -19,7 +19,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="QuickCalcAI"
+        <TextBlock Text="NockAI"
                    FontFamily="{StaticResource FluentDisplay}"
                    FontSize="28"
                    FontWeight="SemiBold"

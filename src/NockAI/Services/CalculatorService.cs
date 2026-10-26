@@ -1,4 +1,4 @@
-namespace QuickCalcAI.Services;
+namespace NockAI.Services;
 
 public enum CalcResultKind
 {

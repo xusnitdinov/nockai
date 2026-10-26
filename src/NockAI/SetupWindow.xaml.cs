@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Navigation;
-using QuickCalcAI.Services;
+using NockAI.Services;
 
-namespace QuickCalcAI;
+namespace NockAI;
 
 public partial class SetupWindow : Window
 {
@@ -22,7 +22,7 @@ public partial class SetupWindow : Window
         {
             MessageBox.Show(
                 "That doesn't look like a Groq key (usually starts with gsk_).",
-                "QuickCalcAI",
+                "NockAI",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -43,7 +43,7 @@ public partial class SetupWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "QuickCalcAI", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(ex.Message, "NockAI", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

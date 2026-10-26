@@ -1,4 +1,4 @@
-# QuickCalcAI
+# NockAI
 
 Win11 hotkey calculator. **Ctrl+Space**, type math or English, get an answer. Tray app, low RAM.
 
@@ -11,19 +11,19 @@ AI turns natural language into an expression. **mXparser** does the actual math 
 **Needs:** [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) and a free [Groq API key](https://console.groq.com/keys).
 
 ```powershell
-git clone https://github.com/xusnitdinov/quickCalcAI.git
-cd quickCalcAI
+git clone https://github.com/xusnitdinov/nockai.git
+cd nockai
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
 ```
 
-That builds Release into `%LOCALAPPDATA%\QuickCalcAI`, adds a Startup shortcut, and launches the app.
+That builds Release into `%LOCALAPPDATA%\NockAI`, adds a Startup shortcut, and launches the app.
 
-First launch asks for your Groq key (saved under `%LOCALAPPDATA%\QuickCalcAI\Secrets.local.json`).
+First launch asks for your Groq key (saved under `%LOCALAPPDATA%\NockAI\Secrets.local.json`).
 
 ### Dev run
 
 ```powershell
-cd src\QuickCalcAI
+cd src\NockAI
 copy Secrets.local.json.example Secrets.local.json
 # edit Secrets.local.json - paste GroqApiKey
 dotnet run -c Release

@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace QuickCalcAI.Services;
+namespace NockAI.Services;
 
 /// <summary>
 /// Routes natural language to calc expressions or math explanations (JSON).
@@ -13,7 +13,7 @@ public sealed class GroqParser : IDisposable
 {
     private const string SystemPrompt =
         """
-        You are QuickCalcAI - a MATH assistant in a calculator overlay.
+        You are NockAI - a MATH assistant in a calculator overlay.
 
         Reply with ONE JSON object only (no markdown fence, no extra text):
 
