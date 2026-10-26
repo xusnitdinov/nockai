@@ -64,7 +64,10 @@ function run(cmd, args, opts = {}) {
 }
 
 function which(cmd) {
-  const r = spawnSync(cmd, ["--version"], { encoding: "utf8", shell: true });
+  const r = spawnSync(process.platform === "win32" ? "where" : "which", [cmd], {
+    encoding: "utf8",
+    shell: false,
+  });
   return r.status === 0;
 }
 

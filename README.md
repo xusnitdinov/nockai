@@ -11,16 +11,18 @@ AI turns natural language into an expression. **mXparser** does the actual math 
 **Easiest (Node / npx):**
 
 ```bash
-npx nockai
+npx github:xusnitdinov/nockai
 ```
+
+Or after we publish to npm: `npx nockai`
 
 That downloads the latest Windows build into `%LOCALAPPDATA%\NockAI`, adds a Startup shortcut, and launches. First run asks for a free [Groq API key](https://console.groq.com/keys).
 
 ```bash
-npx nockai install     # install / update only
-npx nockai start       # launch
-npx nockai uninstall   # remove
-npx nockai doctor      # check install
+npx github:xusnitdinov/nockai install
+npx github:xusnitdinov/nockai start
+npx github:xusnitdinov/nockai uninstall
+npx github:xusnitdinov/nockai doctor
 ```
 
 **From source (PowerShell):** needs [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
