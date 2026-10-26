@@ -1,19 +1,19 @@
-# nockai (npm installer)
+# @xusnitdinov/nockai
 
 Install [NockAI](https://github.com/xusnitdinov/nockai) on Windows with one command:
 
 ```bash
-npx nockai
+npx @xusnitdinov/nockai
 ```
 
 ## Commands
 
 ```bash
-npx nockai              # install/update + launch
-npx nockai install      # install/update only
-npx nockai start        # launch
-npx nockai uninstall    # remove app (keeps API key)
-npx nockai doctor       # sanity check
+npx @xusnitdinov/nockai              # install/update + launch
+npx @xusnitdinov/nockai install      # install/update only
+npx @xusnitdinov/nockai start        # launch
+npx @xusnitdinov/nockai uninstall    # remove app (keeps API key)
+npx @xusnitdinov/nockai doctor       # sanity check
 ```
 
 Prefers the latest GitHub release zip (`NockAI-win-x64.zip`). If none exists yet, builds from source (needs .NET 9 SDK + git).
