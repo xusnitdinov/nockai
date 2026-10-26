@@ -1,7 +1,7 @@
 {
-  "name": "nockai",
+  "name": "@xusnitdinov/nockai",
   "version": "0.1.0",
-  "description": "NockAI - Win11 Ctrl+Space calculator (npx nockai)",
+  "description": "NockAI - Win11 Ctrl+Space calculator (npx @xusnitdinov/nockai)",
   "bin": {
     "nockai": "npm/bin/nockai.js"
   },
