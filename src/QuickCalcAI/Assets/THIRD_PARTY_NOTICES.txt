@@ -1,0 +1,11 @@
+ios_activity_indicator.gif
+--------------------------
+Classic iOS UIActivityIndicatorView-style 12-blade spinner.
+
+Animation approach based on open-source MIT recreations:
+- SpinKit "line-spin-fade-loader" by Tobias Ahlin
+  https://github.com/tobiasahlin/SpinKit  (MIT)
+- NVActivityIndicatorView LineSpinFadeLoader
+  https://github.com/ninjaprox/NVActivityIndicatorView  (MIT)
+
+Generated asset for QuickCalcAI; not an Apple trademarked asset file.

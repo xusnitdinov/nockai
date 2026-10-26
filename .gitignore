@@ -1,0 +1,25 @@
+## Build
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+*.DotSettings.user
+**/tmp_*
+*.csx
+
+## Secrets
+**/Secrets.local.json
+.env
+*.pem
+
+## OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+## Publish / local install leftovers
+**/publish/
+*.msix
+*.appx
+*.lnk
