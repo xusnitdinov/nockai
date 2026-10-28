@@ -44,10 +44,14 @@ $w = New-Object -ComObject WScript.Shell
 # Start Menu (so Windows Search finds it under Apps)
 $programs = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
 $startMenuLnk = Join-Path $programs "NockAI.lnk"
+$ico = Join-Path $Out "Assets\app.ico"
+if (-not (Test-Path $ico)) { $ico = Join-Path $Out "app.ico" }
+
 $menu = $w.CreateShortcut($startMenuLnk)
 $menu.TargetPath = $Exe
 $menu.WorkingDirectory = $Out
 $menu.Description = "NockAI - Ctrl+Space calculator"
+if (Test-Path $ico) { $menu.IconLocation = "$ico,0" }
 $menu.Save()
 Write-Host "Start Menu shortcut: $startMenuLnk" -ForegroundColor Green
 
@@ -58,6 +62,7 @@ if (-not $NoStartup) {
     $lnk.TargetPath = $Exe
     $lnk.WorkingDirectory = $Out
     $lnk.Description = "NockAI - Ctrl+Space calculator"
+    if (Test-Path $ico) { $lnk.IconLocation = "$ico,0" }
     $lnk.Save()
     Write-Host "Startup shortcut: $lnkPath" -ForegroundColor Green
 }

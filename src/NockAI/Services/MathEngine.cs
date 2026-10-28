@@ -24,12 +24,20 @@ public sealed class MathEngine
     }
 
     public bool TryEvaluate(string expression, out string formattedResult) =>
-        TryEvaluate(expression, out formattedResult, out _);
+        TryEvaluate(expression, out formattedResult, out _, out _);
 
-    public bool TryEvaluate(string expression, out string formattedResult, out string? secondary)
+    public bool TryEvaluate(string expression, out string formattedResult, out string? secondary) =>
+        TryEvaluate(expression, out formattedResult, out secondary, out _);
+
+    public bool TryEvaluate(
+        string expression,
+        out string formattedResult,
+        out string? secondary,
+        out double numericValue)
     {
         formattedResult = "";
         secondary = null;
+        numericValue = double.NaN;
         if (string.IsNullOrWhiteSpace(expression))
             return false;
 
@@ -37,12 +45,14 @@ public sealed class MathEngine
 
         if (TryEvaluateCombo(normalized, out var comboVal))
         {
+            numericValue = comboVal;
             FormatValue(comboVal, out formattedResult, out secondary);
             return true;
         }
 
         if (TryEvaluateStats(normalized, out var statsVal))
         {
+            numericValue = statsVal;
             FormatValue(statsVal, out formattedResult, out secondary);
             return true;
         }
@@ -57,6 +67,7 @@ public sealed class MathEngine
             if (double.IsNaN(value) || double.IsInfinity(value))
                 return false;
 
+            numericValue = value;
             FormatValue(value, out formattedResult, out secondary);
             return true;
         }
@@ -288,24 +299,21 @@ public sealed class MathEngine
         secondary = null;
         var decimalForm = FormatDecimal(d);
 
-        if (TryToNiceFraction(d, out var num, out var den) &&
-            den > 1 &&
-            den <= 16 &&
-            Math.Abs(num) <= 64)
+        var preferFrac = SettingsStore.Current.PreferNiceFractions;
+        var hasFrac = TryToNiceFraction(d, out var num, out var den) && den > 1;
+
+        if (preferFrac && hasFrac && den <= 16 && Math.Abs(num) <= 64)
         {
             var frac = $"{num}/{den}";
-            // Nice SAT-style fraction as primary; decimal underneath
             primary = frac;
             if (!string.Equals(decimalForm, frac, StringComparison.Ordinal))
                 secondary = decimalForm;
             return;
         }
 
-        // Still expose a fraction hint for messier rationals (e.g. 378/5)
-        if (TryToNiceFraction(d, out num, out den) && den > 1 && den <= 100)
-            secondary = $"{num}/{den}";
-
         primary = decimalForm;
+        if (hasFrac && den <= 100)
+            secondary = $"{num}/{den}";
     }
 
     private static string FormatDecimal(double d)

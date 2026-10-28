@@ -25,3 +25,9 @@ Desktop.ini
 *.msix
 *.appx
 *.lnk
+
+## Android
+android/local.properties
+android/.gradle/
+android/**/build/
+*.apk

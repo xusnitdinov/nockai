@@ -16,9 +16,10 @@ public sealed class CalcResult
     public string? Markdown { get; init; }
     public string? ExpressionUsed { get; init; }
     public AiReply? RawReply { get; init; }
+    public ResultIconKind Icon { get; init; }
     public bool Ok => Kind is CalcResultKind.Number or CalcResultKind.Explain;
 
-    /// <summary>Best string to put on the clipboard (fraction if we have one).</summary>
+    /// <summary>Best string to put on the clipboard.</summary>
     public string CopyText =>
         Kind == CalcResultKind.Explain
             ? (Markdown ?? "")
@@ -32,14 +33,20 @@ public sealed class CalcResult
     public static CalcResult Unknown(string? expression = null, AiReply? raw = null) =>
         new() { Kind = CalcResultKind.Unknown, Display = "???", ExpressionUsed = expression, RawReply = raw };
 
-    public static CalcResult Number(string value, string? expression = null, AiReply? raw = null, string? secondary = null) =>
+    public static CalcResult Number(
+        string value,
+        string? expression = null,
+        AiReply? raw = null,
+        string? secondary = null,
+        ResultIconKind icon = ResultIconKind.None) =>
         new()
         {
             Kind = CalcResultKind.Number,
             Display = value,
             SecondaryDisplay = secondary,
             ExpressionUsed = expression,
-            RawReply = raw
+            RawReply = raw,
+            Icon = icon
         };
 
     public static CalcResult Explain(string markdown, AiReply? raw = null) =>
@@ -71,6 +78,10 @@ public sealed class CalculatorService
 
         var hasHistory = history is { Count: > 0 };
 
+        // Social ack in the main box - short chill reply, no API
+        if (GroqParser.IsAcknowledgement(input))
+            return CalcResult.Explain("No problem.");
+
         // "explain" alone - don't hit Groq (it used to invent/prompt-leak an equation)
         if (!hasHistory && GroqParser.IsBarePrompt(input))
             return CalcResult.Explain(
@@ -79,14 +90,14 @@ public sealed class CalculatorService
         // Local-first: pure symbols
         if (!hasHistory &&
             _math.LooksLikeSymbolicMath(input) &&
-            _math.TryEvaluate(input, out var local, out var localSec))
-            return CalcResult.Number(local, input, secondary: localSec);
+            _math.TryEvaluate(input, out var local, out var localSec, out var localVal))
+            return PresentNumber(input, input, localVal, local, localSec);
 
         // Local-first: common NL (multiply/typos/simple algebra) - no API needed
         if (!hasHistory &&
             LocalNlMath.TryToExpression(input, out var nlExpr) &&
-            _math.TryEvaluate(nlExpr, out var nlAnswer, out var nlSec))
-            return CalcResult.Number(nlAnswer, nlExpr, AiReply.Calc(nlExpr), nlSec);
+            _math.TryEvaluate(nlExpr, out var nlAnswer, out var nlSec, out var nlVal))
+            return PresentNumber(input, nlExpr, nlVal, nlAnswer, nlSec, AiReply.Calc(nlExpr));
 
         AiReply reply;
         try
@@ -98,12 +109,12 @@ public sealed class CalculatorService
             // Groq down/over capacity - last local attempt
             if (!hasHistory &&
                 LocalNlMath.TryToExpression(input, out var fallbackExpr) &&
-                _math.TryEvaluate(fallbackExpr, out var fallbackAnswer, out var fallbackSec))
-                return CalcResult.Number(fallbackAnswer, fallbackExpr, AiReply.Calc(fallbackExpr), fallbackSec);
+                _math.TryEvaluate(fallbackExpr, out var fallbackAnswer, out var fallbackSec, out var fallbackVal))
+                return PresentNumber(input, fallbackExpr, fallbackVal, fallbackAnswer, fallbackSec, AiReply.Calc(fallbackExpr));
             throw;
         }
 
-        var result = FromReply(reply);
+        var result = FromReply(input, reply);
 
         // Algebra leftover variables or failed eval on equation-looking input
         if (!result.Ok &&
@@ -113,7 +124,7 @@ public sealed class CalculatorService
             try
             {
                 var retry = await _groq.AskSolveNumericAsync(input, ct).ConfigureAwait(false);
-                result = FromReply(retry);
+                result = FromReply(input, retry);
             }
             catch
             {
@@ -122,8 +133,8 @@ public sealed class CalculatorService
 
             if (!result.Ok &&
                 LocalNlMath.TryToExpression(input, out var algExpr) &&
-                _math.TryEvaluate(algExpr, out var algAnswer, out var algSec))
-                return CalcResult.Number(algAnswer, algExpr, AiReply.Calc(algExpr), algSec);
+                _math.TryEvaluate(algExpr, out var algAnswer, out var algSec, out var algVal))
+                return PresentNumber(input, algExpr, algVal, algAnswer, algSec, AiReply.Calc(algExpr));
         }
 
         // Calc expression came back but engine rejected it - one rewrite pass
@@ -137,7 +148,7 @@ public sealed class CalculatorService
                 var rewrite = await _groq.AskSolveNumericAsync(
                     "Rewrite as a pure numeric expression (no words): " + input,
                     ct).ConfigureAwait(false);
-                result = FromReply(rewrite);
+                result = FromReply(input, rewrite);
             }
             catch
             {
@@ -145,15 +156,16 @@ public sealed class CalculatorService
             }
         }
 
-        // Follow-up still unknown -> hard continue retry
+        // Follow-up still unknown -> hard continue retry (skip acks - those aren't math)
         if (result.Kind == CalcResultKind.Unknown &&
             hasHistory &&
+            !GroqParser.IsAcknowledgement(input) &&
             GroqParser.LooksLikeFollowUpContinue(input))
         {
             try
             {
                 var retry = await _groq.AskFollowUpAsync(input, history!, ct).ConfigureAwait(false);
-                result = FromReply(retry);
+                result = FromReply(input, retry);
             }
             catch
             {
@@ -164,7 +176,7 @@ public sealed class CalculatorService
         return result;
     }
 
-    private CalcResult FromReply(AiReply reply)
+    private CalcResult FromReply(string userInput, AiReply reply)
     {
         switch (reply.Kind)
         {
@@ -175,8 +187,8 @@ public sealed class CalculatorService
                     expr = fixedFreq;
 
                 if (!string.IsNullOrWhiteSpace(expr) &&
-                    _math.TryEvaluate(expr, out var answer, out var secondary))
-                    return CalcResult.Number(answer, expr, reply, secondary);
+                    _math.TryEvaluate(expr, out var answer, out var secondary, out var value))
+                    return PresentNumber(userInput, expr, value, answer, secondary, reply);
                 return CalcResult.Unknown(reply.Expression, reply);
             }
 
@@ -188,5 +200,18 @@ public sealed class CalculatorService
             default:
                 return CalcResult.Unknown(raw: reply);
         }
+    }
+
+    private static CalcResult PresentNumber(
+        string userInput,
+        string expression,
+        double value,
+        string rawPrimary,
+        string? rawSecondary,
+        AiReply? raw = null)
+    {
+        var (display, secondary, icon) =
+            ResultPresenter.Present(userInput, expression, value, rawPrimary, rawSecondary);
+        return CalcResult.Number(display, expression, raw, secondary, icon);
     }
 }

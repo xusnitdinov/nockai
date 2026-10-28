@@ -13,7 +13,7 @@ public sealed class GroqParser : IDisposable
 {
     private const string SystemPrompt =
         """
-        You are NockAI - a MATH assistant in a calculator overlay.
+        You are NockAI - a chill MATH assistant in a tiny calculator overlay.
 
         Reply with ONE JSON object only (no markdown fence, no extra text):
 
@@ -26,11 +26,16 @@ public sealed class GroqParser : IDisposable
         3) Truly not math (weather, jokes, coding, life advice with zero math):
         {"kind":"unknown"}
 
+        TONE:
+        - Short. Direct. No pep talk.
+        - No "Glad that helped!", "Let me know if...", "Great question!", "Hope this helps!".
+        - No closing offers. Just the math.
+
         ========================
         DECISION RULES
         ========================
         - Math topics: arithmetic, algebra, geometry, stats, percentages, formulas, how-to-math.
-        - Ignore slang: yo, pls, please, bro, hey, can you, help me, thanks.
+        - Ignore slang: yo, pls, please, bro, hey, can you, help me.
         - Fix typos: multiple→multiply, devided→divided, avrage→average, ect.
         - how/what/why/explain/define a math idea -> explain (even with slang).
         - numbers to compute, or solve for n/x -> calc.
@@ -38,12 +43,15 @@ public sealed class GroqParser : IDisposable
         - Prefer calc over explain when they want a number.
         - Bare "explain"/"how"/"why"/"steps"/"help" with NO math topic and NO prior messages
           -> {"kind":"unknown"}. Do NOT invent a problem. Do NOT reuse examples from this prompt.
+        - thanks / thx / ty / ok / cool / nice / got it / bet (acknowledgements)
+          -> {"kind":"unknown"}. Do NOT re-explain. Do NOT teach order of operations unprompted.
 
         FOLLOW-UPS (very important):
         - Prior messages are the SAME math conversation.
         - Short replies like "more examples", "more examples pls", "simpler", "another one",
           "what about median", "show steps", "eli5", "again", "ok and mode?" CONTINUE that topic.
-        - With history, almost NEVER return unknown. Continue with kind=explain (or calc if they give numbers).
+        - Acknowledgements (thanks/ok/cool/got it) are NOT continue cues -> unknown.
+        - With history, almost NEVER return unknown for real math follow-ups. Continue with kind=explain (or calc if they give numbers).
         - Build on the previous assistant answer; do not pretend you forgot it.
         - If they ask for more examples, give 2-3 NEW worked numeric examples in markdown.
 
@@ -65,14 +73,25 @@ public sealed class GroqParser : IDisposable
         - Rearrange to a numeric expression for the unknown.
         - 12n=144 -> {"kind":"calc","expression":"144/12"}
         - 2x+4=10 -> {"kind":"calc","expression":"(10-4)/2"}
+        - "increase from A to B" / "decrease from A to B" (NO percent word) -> {"kind":"calc","expression":"B-A"}
+        - "percent increase from A to B" / "increase from A to B percent" -> {"kind":"calc","expression":"((B-A)/A)*100"}
+        - Compound: "increase from A to B and increase by C" -> {"kind":"calc","expression":"(B-A)+C"}
+          (delta first, then apply the extra change). "… then increase that by C" same idea.
+        - Only use *100 percent math if the user said percent / % / percentage.
+        - "chances" / "probability" / "odds" -> {"kind":"calc","expression":"favorable/total"}
+          (e.g. 4 red of 10 -> 4/10). Do NOT flip to explain for tiny wording changes.
+          UI formats it as a percent.
         - Never copy these examples into an explain reply unless the user typed that same problem.
 
-        EXPLAIN markdown (under ~140 words):
+        EXPLAIN markdown:
+        - Keep short (word cap is set per session below).
         - **bold** key terms
         - ==highlight== core formula (equals inside highlight OK)
         - `code` for short formulas
         - "- " bullets OK
-        - No links, no # headings
+        - Icons (Segoe): :up: :down: :flat: :pct: :ok: :x: :warn: :calc: :sum: :info: :star:
+          Use them at the start of a line or before a key number, e.g. ":up: **5.33%** increase".
+        - No links, no # headings, no fluff outro
         """;
 
     private static readonly string[] FallbackModels =
@@ -222,13 +241,12 @@ public sealed class GroqParser : IDisposable
     /// </summary>
     public static bool IsBarePrompt(string input)
     {
-        var lower = Regex.Replace(input.Trim().ToLowerInvariant(), @"[.!?]+$", "").Trim();
+        var lower = NormalizeAckText(input);
         if (lower.Length == 0)
             return true;
 
-        // strip leftover slang the normalizer may have left
-        lower = SlangPrefix.Replace(lower, "").Trim();
-        lower = Regex.Replace(lower, @"[.!?]+$", "").Trim();
+        if (IsAcknowledgement(lower))
+            return true;
 
         string[] bare =
         [
@@ -244,6 +262,42 @@ public sealed class GroqParser : IDisposable
             return true;
 
         return false;
+    }
+
+    /// <summary>
+    /// thanks / ok / cool - social ack, not a math follow-up.
+    /// </summary>
+    public static bool IsAcknowledgement(string input)
+    {
+        var lower = NormalizeAckText(input);
+        if (lower.Length == 0)
+            return false;
+
+        string[] acks =
+        [
+            "thanks", "thank you", "thank u", "thx", "ty", "tysm", "tyvm",
+            "ok", "okay", "k", "kk", "cool", "nice", "sick", "fire", "bet",
+            "got it", "gotcha", "makes sense", "alr", "alright", "np",
+            "perfect", "great", "awesome", "good", "yep", "ye", "yeah", "yea",
+            "ig", "igight", "fs", "word", "noted", "done", "sweet"
+        ];
+        if (acks.Any(a => lower.Equals(a, StringComparison.Ordinal)))
+            return true;
+
+        // "thanks bro", "ok thanks", "cool thanks dude"
+        if (Regex.IsMatch(lower,
+                @"^(thanks|thank you|thank u|thx|ty|tysm|ok|okay|cool|nice|got it|gotcha|bet)(\s+(bro|dude|man|lol|tho|though|a lot|so much))?$"))
+            return true;
+
+        return false;
+    }
+
+    private static string NormalizeAckText(string input)
+    {
+        var lower = Regex.Replace(input.Trim().ToLowerInvariant(), @"[.!?🥰🙏👍]+$", "").Trim();
+        lower = SlangPrefix.Replace(lower, "").Trim();
+        lower = Regex.Replace(lower, @"[.!?]+$", "").Trim();
+        return lower;
     }
 
     private async Task<AiReply> AskAsync(
@@ -295,72 +349,27 @@ public sealed class GroqParser : IDisposable
 
     private List<object> BuildMessages(string userText, IReadOnlyList<ChatTurn>? history)
     {
+        var s = SettingsStore.Current;
         var messages = new List<object>
         {
-            new { role = "system", content = SystemPrompt }
+            new { role = "system", content = BuildSystemPrompt(s) }
         };
 
-        if (history is not { Count: > 0 })
+        var effectiveHistory = s.EnableChatHistory && history is { Count: > 0 }
+            ? history.TakeLast(s.HistoryMessageCount).ToList()
+            : null;
+
+        if (effectiveHistory is null)
         {
-            messages.Add(new { role = "user", content = "multiple 264 by 1446" });
-            messages.Add(new { role = "assistant", content = "{\"kind\":\"calc\",\"expression\":\"264*1446\"}" });
-            messages.Add(new { role = "user", content = "12n=144 find the n" });
-            messages.Add(new { role = "assistant", content = "{\"kind\":\"calc\",\"expression\":\"144/12\"}" });
-            messages.Add(new { role = "user", content = "yo pls explain how do i find mean ?" });
-            messages.Add(new
-            {
-                role = "assistant",
-                content =
-                    "{\"kind\":\"explain\",\"markdown\":\"The **mean** (average) is the sum of values divided by how many there are.\\n\\n==mean = (sum of values) / (count)==\\n\\n- Add every number\\n- Divide by the count\\n\\nExample: `2, 4, 6` → `(2+4+6)/3 = 4`.\"}"
-            });
-            messages.Add(new { role = "user", content = "more examples pls" });
-            messages.Add(new
-            {
-                role = "assistant",
-                content =
-                    "{\"kind\":\"explain\",\"markdown\":\"More **mean** examples:\\n\\n- `10, 20` → ==(10+20)/2 = 15==\\n- `5, 5, 5, 9` → ==(5+5+5+9)/4 = 6==\\n- `2, 4, 6, 8, 10` → ==(2+4+6+8+10)/5 = 6==\"}"
-            });
-            messages.Add(new { role = "user", content = "mean of 10 and 20" });
-            messages.Add(new { role = "assistant", content = "{\"kind\":\"calc\",\"expression\":\"mean(10,20)\"}" });
-            messages.Add(new { role = "user", content = "mean if 6 students scored 85 and 4 scored 95" });
-            messages.Add(new
-            {
-                role = "assistant",
-                content = "{\"kind\":\"calc\",\"expression\":\"(6*85+4*95)/(6+4)\"}"
-            });
-            messages.Add(new { role = "user", content = "mode of 2, 3, 3, 4, 5, 5, 5, 6" });
-            messages.Add(new { role = "assistant", content = "{\"kind\":\"calc\",\"expression\":\"mode(2,3,3,4,5,5,5,6)\"}" });
-            messages.Add(new
-            {
-                role = "user",
-                content = "19n equals to 6*29 plus 7 multiplied by (n-6), whats the n"
-            });
-            messages.Add(new
-            {
-                role = "assistant",
-                content = "{\"kind\":\"calc\",\"expression\":\"(6*29-7*6)/(19-7)\"}"
-            });
-            messages.Add(new { role = "user", content = "whats the weather" });
-            messages.Add(new { role = "assistant", content = "{\"kind\":\"unknown\"}" });
+            if (s.UseFewShotExamples)
+                AddColdStartFewShots(messages);
         }
         else
         {
-            messages.Add(new { role = "user", content = "how do i find average" });
-            messages.Add(new
-            {
-                role = "assistant",
-                content =
-                    "{\"kind\":\"explain\",\"markdown\":\"The **average** (mean) is sum divided by count.\\n\\n==average = sum / count==\"}"
-            });
-            messages.Add(new { role = "user", content = "more examples pls" });
-            messages.Add(new
-            {
-                role = "assistant",
-                content =
-                    "{\"kind\":\"explain\",\"markdown\":\"Examples:\\n\\n- `3, 6, 9` → ==(3+6+9)/3 = 6==\\n- `1, 1, 7` → ==(1+1+7)/3 = 3==\"}"
-            });
+            if (s.UseFewShotExamples)
+                AddFollowUpFewShots(messages);
 
-            foreach (var turn in history.TakeLast(8))
+            foreach (var turn in effectiveHistory)
             {
                 var role = turn.Role is "assistant" or "user" ? turn.Role : "user";
                 messages.Add(new { role, content = turn.Content });
@@ -371,13 +380,117 @@ public sealed class GroqParser : IDisposable
         return messages;
     }
 
+    private static string BuildSystemPrompt(AppSettings s)
+    {
+        var sb = new StringBuilder(SystemPrompt);
+        sb.AppendLine();
+        sb.AppendLine("========================");
+        sb.AppendLine("SESSION STYLE");
+        sb.AppendLine("========================");
+        sb.AppendLine(ToneInstructions(s.AiTone));
+        sb.AppendLine($"Explain markdown soft cap: under ~{s.ExplainMaxWords} words.");
+        if (s.PreferDetailedExplain)
+        {
+            sb.AppendLine(
+                "Prefer kind=explain with a bit more teaching detail for how/why/what concept questions " +
+                "(still respect the word cap; still use calc when they want a number).");
+        }
+
+        if (!string.IsNullOrWhiteSpace(s.AiProfilePrompt))
+        {
+            sb.AppendLine();
+            sb.AppendLine("USER PROFILE / CUSTOM INSTRUCTIONS (obey for voice, personality, and extra rules):");
+            sb.AppendLine(s.AiProfilePrompt.Trim());
+        }
+
+        return sb.ToString();
+    }
+
+    private static string ToneInstructions(string tone) =>
+        (tone ?? "Chill").Trim().ToLowerInvariant() switch
+        {
+            "tutor" =>
+                "Tone preset: Tutor. Patient teacher. Slightly more steps and one tiny check question vibe is OK. " +
+                "Still no pep talk outros.",
+            "formal" =>
+                "Tone preset: Formal. Precise academic wording. No slang. No jokes. Clean definitions.",
+            "sassy" =>
+                "Tone preset: Sassy. Witty, slightly roasting wrong approaches - but stay correct and short. " +
+                "Never insult the person; roast the mistake.",
+            _ =>
+                "Tone preset: Chill. Short. Direct. No pep talk. No closing offers."
+        };
+
+    private static void AddColdStartFewShots(List<object> messages)
+    {
+        messages.Add(new { role = "user", content = "multiple 264 by 1446" });
+        messages.Add(new { role = "assistant", content = "{\"kind\":\"calc\",\"expression\":\"264*1446\"}" });
+        messages.Add(new { role = "user", content = "12n=144 find the n" });
+        messages.Add(new { role = "assistant", content = "{\"kind\":\"calc\",\"expression\":\"144/12\"}" });
+        messages.Add(new { role = "user", content = "yo pls explain how do i find mean ?" });
+        messages.Add(new
+        {
+            role = "assistant",
+            content =
+                "{\"kind\":\"explain\",\"markdown\":\"The **mean** (average) is the sum of values divided by how many there are.\\n\\n==mean = (sum of values) / (count)==\\n\\n- Add every number\\n- Divide by the count\\n\\nExample: `2, 4, 6` → `(2+4+6)/3 = 4`.\"}"
+        });
+        messages.Add(new { role = "user", content = "more examples pls" });
+        messages.Add(new
+        {
+            role = "assistant",
+            content =
+                "{\"kind\":\"explain\",\"markdown\":\"More **mean** examples:\\n\\n- `10, 20` → ==(10+20)/2 = 15==\\n- `5, 5, 5, 9` → ==(5+5+5+9)/4 = 6==\\n- `2, 4, 6, 8, 10` → ==(2+4+6+8+10)/5 = 6==\"}"
+        });
+        messages.Add(new { role = "user", content = "mean of 10 and 20" });
+        messages.Add(new { role = "assistant", content = "{\"kind\":\"calc\",\"expression\":\"mean(10,20)\"}" });
+        messages.Add(new { role = "user", content = "mean if 6 students scored 85 and 4 scored 95" });
+        messages.Add(new
+        {
+            role = "assistant",
+            content = "{\"kind\":\"calc\",\"expression\":\"(6*85+4*95)/(6+4)\"}"
+        });
+        messages.Add(new { role = "user", content = "mode of 2, 3, 3, 4, 5, 5, 5, 6" });
+        messages.Add(new { role = "assistant", content = "{\"kind\":\"calc\",\"expression\":\"mode(2,3,3,4,5,5,5,6)\"}" });
+        messages.Add(new
+        {
+            role = "user",
+            content = "19n equals to 6*29 plus 7 multiplied by (n-6), whats the n"
+        });
+        messages.Add(new
+        {
+            role = "assistant",
+            content = "{\"kind\":\"calc\",\"expression\":\"(6*29-7*6)/(19-7)\"}"
+        });
+        messages.Add(new { role = "user", content = "whats the weather" });
+        messages.Add(new { role = "assistant", content = "{\"kind\":\"unknown\"}" });
+    }
+
+    private static void AddFollowUpFewShots(List<object> messages)
+    {
+        messages.Add(new { role = "user", content = "how do i find average" });
+        messages.Add(new
+        {
+            role = "assistant",
+            content =
+                "{\"kind\":\"explain\",\"markdown\":\"The **average** (mean) is sum divided by count.\\n\\n==average = sum / count==\"}"
+        });
+        messages.Add(new { role = "user", content = "more examples pls" });
+        messages.Add(new
+        {
+            role = "assistant",
+            content =
+                "{\"kind\":\"explain\",\"markdown\":\"Examples:\\n\\n- `3, 6, 9` → ==(3+6+9)/3 = 6==\\n- `1, 1, 7` → ==(1+1+7)/3 = 3==\"}"
+        });
+    }
+
     private async Task<AiReply> SendAsync(string model, List<object> messages, CancellationToken ct)
     {
+        var s = SettingsStore.Current;
         var payload = new
         {
             model,
-            temperature = 0,
-            max_tokens = 550,
+            temperature = s.AiTemperature,
+            max_tokens = s.AiMaxTokens,
             response_format = new { type = "json_object" },
             messages
         };

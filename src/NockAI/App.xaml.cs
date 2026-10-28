@@ -30,6 +30,8 @@ public partial class App : Application
                 secrets = setup.Result!;
             }
 
+            SettingsStore.Load();
+
             var math = new MathEngine();
             _groq = new GroqParser(secrets.GroqApiKey, secrets.GroqModel);
             var calculator = new CalculatorService(math, _groq);
@@ -38,6 +40,7 @@ public partial class App : Application
 
             _tray = new TrayService();
             _tray.OpenRequested += () => Dispatcher.Invoke(() => _window?.ShowOverlay());
+            _tray.SettingsRequested += () => Dispatcher.Invoke(() => _window?.OpenSettings());
             _tray.ExitRequested += () => Dispatcher.Invoke(ExitApp);
 
             _hotkey = new HotkeyService();

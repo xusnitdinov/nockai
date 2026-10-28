@@ -1,0 +1,591 @@
+<Window x:Class="NockAI.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NockAI Settings"
+        Icon="pack://application:,,,/Assets/app.ico"
+        Width="1000"
+        Height="680"
+        MinWidth="820"
+        MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="#FF1C1C1C"
+        FontFamily="{StaticResource FluentText}"
+        SourceInitialized="Window_SourceInitialized"
+        KeyDown="Window_KeyDown"
+        Closing="Window_Closing">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Invisible drag strip (no OS title bar) -->
+        <Border Grid.ColumnSpan="2"
+                Height="32"
+                VerticalAlignment="Top"
+                Background="Transparent"
+                MouseLeftButtonDown="TitleDrag_MouseLeftButtonDown"
+                Panel.ZIndex="10" />
+
+        <!-- ===== Left nav (PowerToys style) ===== -->
+        <Border Grid.Column="0"
+                Background="#FF202020"
+                BorderBrush="#14FFFFFF"
+                BorderThickness="0,0,1,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Margin="20,20,16,16">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock FontFamily="{StaticResource FluentIcons}"
+                                   FontSize="20"
+                                   Foreground="{StaticResource AccentFill}"
+                                   Text="&#xE8EF;"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
+                        <TextBlock Text="NockAI"
+                                   FontFamily="{StaticResource FluentDisplay}"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimary}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="Settings"
+                               FontSize="12"
+                               Foreground="{StaticResource TextTertiary}"
+                               Margin="30,0,0,0" />
+                </StackPanel>
+
+                <StackPanel Margin="4,8,4,0">
+                    <RadioButton x:Name="NavGeneral"
+                                 Style="{StaticResource SettingsNavItem}"
+                                 GroupName="SettingsNav"
+                                 IsChecked="True"
+                                 Checked="Nav_Checked"
+                                 Tag="General">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="{StaticResource FluentIcons}" Text="&#xE713;" FontSize="16"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Text="General" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="NavOverlay"
+                                 Style="{StaticResource SettingsNavItem}"
+                                 GroupName="SettingsNav"
+                                 Checked="Nav_Checked"
+                                 Tag="Overlay">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="{StaticResource FluentIcons}" Text="&#xE8A7;" FontSize="16"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Text="Overlay" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="NavAnswers"
+                                 Style="{StaticResource SettingsNavItem}"
+                                 GroupName="SettingsNav"
+                                 Checked="Nav_Checked"
+                                 Tag="Answers">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="{StaticResource FluentIcons}" Text="&#xE8EF;" FontSize="16"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Text="Answers" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="NavAi"
+                                 Style="{StaticResource SettingsNavItem}"
+                                 GroupName="SettingsNav"
+                                 Checked="Nav_Checked"
+                                 Tag="AI">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="{StaticResource FluentIcons}" Text="&#xE99A;" FontSize="16"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Text="AI" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="NavAbout"
+                                 Style="{StaticResource SettingsNavItem}"
+                                 GroupName="SettingsNav"
+                                 Checked="Nav_Checked"
+                                 Tag="About">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="{StaticResource FluentIcons}" Text="&#xE946;" FontSize="16"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Text="About" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ===== Content ===== -->
+        <Grid Grid.Column="1" Background="#FF1C1C1C">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Padding="36,28,20,8">
+                <Grid>
+                    <TextBlock x:Name="PageTitle"
+                               Text="General"
+                               FontFamily="{StaticResource FluentDisplay}"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimary}"
+                               VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+                        <TextBlock x:Name="SavedHint"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextTertiary}"
+                                   Opacity="0"
+                                   Text="Saved"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,16,0" />
+                        <Button Width="40"
+                                Height="32"
+                                Style="{StaticResource FluentQuietButton}"
+                                ToolTip="Close"
+                                Click="Close_Click"
+                                Padding="0">
+                            <TextBlock FontFamily="{StaticResource FluentIcons}"
+                                       FontSize="12"
+                                       Text="&#xE8BB;"
+                                       HorizontalAlignment="Center" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          Padding="36,8,36,24"
+                          CanContentScroll="False">
+                <Grid MaxWidth="760" HorizontalAlignment="Left">
+
+                    <!-- GENERAL -->
+                    <StackPanel x:Name="PageGeneral">
+                        <TextBlock Text="Sending"
+                                   Style="{StaticResource CaptionLabel}"
+                                   Margin="0,0,0,8" />
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Auto-send after typing pause"
+                                               FontSize="14"
+                                               Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="When off, press Enter to evaluate. When on, NockAI sends after the delay."
+                                               FontSize="12"
+                                               Foreground="{StaticResource TextTertiary}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,4,16,0" />
+                                </StackPanel>
+                                <CheckBox x:Name="AutoSendCheck"
+                                          Grid.Column="1"
+                                          Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center"
+                                          Checked="Setting_Changed"
+                                          Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+
+                        <Border x:Name="DelayCard" Style="{StaticResource SettingsCard}">
+                            <StackPanel Margin="16,14">
+                                <Grid>
+                                    <TextBlock Text="Auto-send delay"
+                                               FontSize="14"
+                                               Foreground="{StaticResource TextPrimary}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock x:Name="DelayValueLabel"
+                                               HorizontalAlignment="Right"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource AccentFill}"
+                                               Text="340 ms" />
+                                </Grid>
+                                <TextBlock Text="How long to wait after you stop typing before evaluating."
+                                           FontSize="12"
+                                           Foreground="{StaticResource TextTertiary}"
+                                           Margin="0,4,0,12" />
+                                <Slider x:Name="DelaySlider"
+                                        Style="{StaticResource FluentSlider}"
+                                        Minimum="100"
+                                        Maximum="1000"
+                                        TickFrequency="20"
+                                        IsSnapToTickEnabled="True"
+                                        ValueChanged="DelaySlider_ValueChanged" />
+                                <Grid Margin="0,6,0,0">
+                                    <TextBlock Text="100 ms" FontSize="11" Foreground="{StaticResource TextDisabled}" />
+                                    <TextBlock Text="1000 ms" FontSize="11" Foreground="{StaticResource TextDisabled}"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- OVERLAY -->
+                    <StackPanel x:Name="PageOverlay" Visibility="Collapsed">
+                        <TextBlock Text="Window behavior"
+                                   Style="{StaticResource CaptionLabel}"
+                                   Margin="0,0,0,8" />
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Hide when clicking outside" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="Closes the overlay when it loses focus." FontSize="12"
+                                               Foreground="{StaticResource TextTertiary}" Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="HideUnfocusedCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="Setting_Changed" Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Always on top" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="Keep NockAI above other windows." FontSize="12"
+                                               Foreground="{StaticResource TextTertiary}" Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="StayOnTopCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="Setting_Changed" Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Select all text when opening" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="Highlights the query so you can type over it immediately." FontSize="12"
+                                               Foreground="{StaticResource TextTertiary}" Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="SelectAllCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="Setting_Changed" Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Show Thinking… animation" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="Progress bar + shimmer while waiting on the AI." FontSize="12"
+                                               Foreground="{StaticResource TextTertiary}" Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="ThinkingCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="Setting_Changed" Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ANSWERS -->
+                    <StackPanel x:Name="PageAnswers" Visibility="Collapsed">
+                        <TextBlock Text="Formatting"
+                                   Style="{StaticResource CaptionLabel}"
+                                   Margin="0,0,0,8" />
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Prefer nice fractions" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="Show 2/5 instead of 0.4 when the fraction is clean (SAT-style)." FontSize="12"
+                                               Foreground="{StaticResource TextTertiary}" Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="FractionsCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="Setting_Changed" Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Show chances as percent" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="Probability / chance questions display as 40% with the fraction underneath." FontSize="12"
+                                               Foreground="{StaticResource TextTertiary}" Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="ProbabilityPctCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="Setting_Changed" Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Ctrl+C copies answer" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="When nothing is selected in a text box, copy the result." FontSize="12"
+                                               Foreground="{StaticResource TextTertiary}" Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="CopyCtrlCCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="Setting_Changed" Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- AI -->
+                    <StackPanel x:Name="PageAi" Visibility="Collapsed">
+                        <TextBlock Text="Personality"
+                                   Style="{StaticResource CaptionLabel}"
+                                   Margin="0,0,0,8" />
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <StackPanel Margin="16,14">
+                                <TextBlock Text="Tone preset" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                <TextBlock Text="Base vibe baked into every request. Profile text below overrides / adds on top."
+                                           FontSize="12" Foreground="{StaticResource TextTertiary}"
+                                           Margin="0,4,0,12" TextWrapping="Wrap" />
+                                <ComboBox x:Name="ToneCombo"
+                                          Style="{StaticResource FluentComboBox}"
+                                          SelectedIndex="0"
+                                          SelectionChanged="ToneCombo_SelectionChanged">
+                                    <ComboBoxItem Content="Chill" Tag="Chill" />
+                                    <ComboBoxItem Content="Tutor" Tag="Tutor" />
+                                    <ComboBoxItem Content="Formal" Tag="Formal" />
+                                    <ComboBoxItem Content="Sassy" Tag="Sassy" />
+                                </ComboBox>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <StackPanel Margin="16,14">
+                                <TextBlock Text="Profile / custom prompt" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                <TextBlock Text="Extra instructions sent with every question - e.g. “talk like a tired TA”, “always show units”, “reply in Uzbek”."
+                                           FontSize="12" Foreground="{StaticResource TextTertiary}"
+                                           Margin="0,4,0,12" TextWrapping="Wrap" />
+                                <TextBox x:Name="ProfileBox"
+                                         Style="{StaticResource FluentSettingsTextBox}"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         MinHeight="110"
+                                         MaxHeight="220"
+                                         VerticalScrollBarVisibility="Auto"
+                                         LostFocus="ProfileBox_LostFocus" />
+                                <TextBlock x:Name="ProfileHint"
+                                           FontSize="11"
+                                           Foreground="{StaticResource TextDisabled}"
+                                           Margin="0,8,0,0"
+                                           Text="Saved when you leave this box." />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Conversation"
+                                   Style="{StaticResource CaptionLabel}"
+                                   Margin="0,20,0,8" />
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Chat history / follow-ups" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="Keep a short thread so “more examples” continues the topic. Off = one-shot answers only."
+                                               FontSize="12" Foreground="{StaticResource TextTertiary}"
+                                               Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="ChatHistoryCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="ChatHistory_Changed" Unchecked="ChatHistory_Changed" />
+                            </Grid>
+                        </Border>
+
+                        <Border x:Name="HistoryTurnsCard" Style="{StaticResource SettingsCard}">
+                            <StackPanel Margin="16,14">
+                                <Grid>
+                                    <TextBlock Text="History messages to keep" FontSize="14" Foreground="{StaticResource TextPrimary}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock x:Name="HistoryTurnsLabel"
+                                               HorizontalAlignment="Right"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource AccentFill}"
+                                               Text="8" />
+                                </Grid>
+                                <TextBlock Text="User + assistant turns count separately. Higher = better context, more tokens."
+                                           FontSize="12" Foreground="{StaticResource TextTertiary}" Margin="0,4,0,12" />
+                                <Slider x:Name="HistoryTurnsSlider"
+                                        Style="{StaticResource FluentSlider}"
+                                        Minimum="2"
+                                        Maximum="24"
+                                        TickFrequency="2"
+                                        IsSnapToTickEnabled="True"
+                                        ValueChanged="HistoryTurnsSlider_ValueChanged" />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Model knobs"
+                                   Style="{StaticResource CaptionLabel}"
+                                   Margin="0,20,0,8" />
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Few-shot examples" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="Baked sample Q&amp;A in the prompt. Helps accuracy; uses a bit more tokens."
+                                               FontSize="12" Foreground="{StaticResource TextTertiary}"
+                                               Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="FewShotCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="Setting_Changed" Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid Margin="16,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Prefer detailed explains" FontSize="14" Foreground="{StaticResource TextPrimary}" />
+                                    <TextBlock Text="Nudge the model toward teaching mode on how/why questions (still capped by word limit)."
+                                               FontSize="12" Foreground="{StaticResource TextTertiary}"
+                                               Margin="0,4,16,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox x:Name="PreferExplainCheck" Grid.Column="1" Style="{StaticResource FluentToggle}"
+                                          VerticalAlignment="Center" Checked="Setting_Changed" Unchecked="Setting_Changed" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <StackPanel Margin="16,14">
+                                <Grid>
+                                    <TextBlock Text="Temperature" FontSize="14" Foreground="{StaticResource TextPrimary}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock x:Name="TempLabel"
+                                               HorizontalAlignment="Right"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource AccentFill}"
+                                               Text="0.00" />
+                                </Grid>
+                                <TextBlock Text="0 = deterministic math. Bump a little if you want more creative explains."
+                                           FontSize="12" Foreground="{StaticResource TextTertiary}" Margin="0,4,0,12" />
+                                <Slider x:Name="TempSlider"
+                                        Style="{StaticResource FluentSlider}"
+                                        Minimum="0"
+                                        Maximum="1"
+                                        TickFrequency="0.05"
+                                        IsSnapToTickEnabled="True"
+                                        ValueChanged="TempSlider_ValueChanged" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <StackPanel Margin="16,14">
+                                <Grid>
+                                    <TextBlock Text="Max tokens" FontSize="14" Foreground="{StaticResource TextPrimary}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock x:Name="MaxTokensLabel"
+                                               HorizontalAlignment="Right"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource AccentFill}"
+                                               Text="550" />
+                                </Grid>
+                                <TextBlock Text="Hard cap on how long the model can reply."
+                                           FontSize="12" Foreground="{StaticResource TextTertiary}" Margin="0,4,0,12" />
+                                <Slider x:Name="MaxTokensSlider"
+                                        Style="{StaticResource FluentSlider}"
+                                        Minimum="100"
+                                        Maximum="1200"
+                                        TickFrequency="50"
+                                        IsSnapToTickEnabled="True"
+                                        ValueChanged="MaxTokensSlider_ValueChanged" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <StackPanel Margin="16,14">
+                                <Grid>
+                                    <TextBlock Text="Explain word limit" FontSize="14" Foreground="{StaticResource TextPrimary}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock x:Name="ExplainWordsLabel"
+                                               HorizontalAlignment="Right"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource AccentFill}"
+                                               Text="80" />
+                                </Grid>
+                                <TextBlock Text="Soft cap told to the model for explain answers."
+                                           FontSize="12" Foreground="{StaticResource TextTertiary}" Margin="0,4,0,12" />
+                                <Slider x:Name="ExplainWordsSlider"
+                                        Style="{StaticResource FluentSlider}"
+                                        Minimum="40"
+                                        Maximum="200"
+                                        TickFrequency="10"
+                                        IsSnapToTickEnabled="True"
+                                        ValueChanged="ExplainWordsSlider_ValueChanged" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ABOUT -->
+                    <StackPanel x:Name="PageAbout" Visibility="Collapsed">
+                        <Border Style="{StaticResource SettingsCard}" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="NockAI" FontSize="20" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimary}" />
+                                <TextBlock Text="Ctrl+Space math overlay for Windows"
+                                           FontSize="13" Foreground="{StaticResource TextSecondary}"
+                                           Margin="0,4,0,16" />
+                                <TextBlock FontSize="13" Foreground="{StaticResource TextTertiary}" TextWrapping="Wrap"
+                                           Text="Settings are saved instantly to %LOCALAPPDATA%\NockAI\settings.json. Tray icon → Settings also opens this window." />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+
+            <Border Grid.Row="2"
+                    Padding="36,10,36,14"
+                    BorderBrush="#14FFFFFF"
+                    BorderThickness="0,1,0,0"
+                    Background="#FF1A1A1A">
+                <TextBlock FontSize="12"
+                           Foreground="{StaticResource TextDisabled}"
+                           Text="Changes save automatically · Esc closes" />
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

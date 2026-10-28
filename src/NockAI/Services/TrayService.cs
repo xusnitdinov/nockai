@@ -1,3 +1,4 @@
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 
@@ -23,10 +24,12 @@ public sealed class TrayService : IDisposable
     private readonly WndProc _wndProc;
     private readonly GCHandle _wndProcHandle;
     private readonly IntPtr _icon;
+    private readonly bool _ownsIcon;
     private bool _added;
     private bool _disposed;
 
     public event Action? OpenRequested;
+    public event Action? SettingsRequested;
     public event Action? ExitRequested;
 
     public TrayService()
@@ -34,7 +37,9 @@ public sealed class TrayService : IDisposable
         _dispatcher = Dispatcher.CurrentDispatcher;
         _wndProc = WndProcImpl;
         _wndProcHandle = GCHandle.Alloc(_wndProc);
-        _icon = LoadIcon(IntPtr.Zero, new IntPtr(32512)); // IDI_APPLICATION
+        _icon = TryLoadAppIcon(out _ownsIcon);
+        if (_icon == IntPtr.Zero)
+            _icon = LoadIcon(IntPtr.Zero, new IntPtr(32512)); // IDI_APPLICATION fallback
 
         var wc = new WndClassEx
         {
@@ -101,7 +106,9 @@ public sealed class TrayService : IDisposable
     {
         var menu = CreatePopupMenu();
         AppendMenu(menu, 0, 1, "Open NockAI");
-        AppendMenu(menu, 0, 2, "Exit");
+        AppendMenu(menu, 0, 2, "Settings");
+        AppendMenu(menu, 0x00000800, 0, ""); // MF_SEPARATOR
+        AppendMenu(menu, 0, 3, "Exit");
 
         GetCursorPos(out var pt);
         SetForegroundWindow(_hwnd);
@@ -109,7 +116,8 @@ public sealed class TrayService : IDisposable
         DestroyMenu(menu);
 
         if (cmd == 1) OpenRequested?.Invoke();
-        else if (cmd == 2) ExitRequested?.Invoke();
+        else if (cmd == 2) SettingsRequested?.Invoke();
+        else if (cmd == 3) ExitRequested?.Invoke();
     }
 
     public void Dispose()
@@ -127,8 +135,32 @@ public sealed class TrayService : IDisposable
         if (_hwnd != IntPtr.Zero)
             DestroyWindow(_hwnd);
 
+        if (_ownsIcon && _icon != IntPtr.Zero)
+            DestroyIcon(_icon);
+
         if (_wndProcHandle.IsAllocated)
             _wndProcHandle.Free();
+    }
+
+    private static IntPtr TryLoadAppIcon(out bool owns)
+    {
+        owns = false;
+        foreach (var rel in new[] { "app.ico", Path.Combine("Assets", "app.ico") })
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, rel);
+            if (!File.Exists(path))
+                continue;
+
+            // 0x10 = LR_LOADFROMFILE, 0x40 = LR_DEFAULTSIZE
+            var handle = LoadImage(IntPtr.Zero, path, 1 /* IMAGE_ICON */, 0, 0, 0x00000010 | 0x00000040);
+            if (handle != IntPtr.Zero)
+            {
+                owns = true;
+                return handle;
+            }
+        }
+
+        return IntPtr.Zero;
     }
 
     private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
@@ -175,6 +207,13 @@ public sealed class TrayService : IDisposable
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr LoadImage(
+        IntPtr hInst, string name, uint type, int cx, int cy, uint fuLoad);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool DestroyIcon(IntPtr hIcon);
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern ushort RegisterClassEx(ref WndClassEx lpwcx);

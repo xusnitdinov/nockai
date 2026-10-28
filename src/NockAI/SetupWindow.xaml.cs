@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Navigation;
 using NockAI.Services;
 
@@ -13,6 +15,23 @@ public partial class SetupWindow : Window
     {
         InitializeComponent();
         KeyBox.Focus();
+    }
+
+    private void Window_SourceInitialized(object? sender, EventArgs e)
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        var dark = 1;
+        DwmSetWindowAttribute(hwnd, 20, ref dark, sizeof(int));
+
+        var acrylic = 3;
+        if (DwmSetWindowAttribute(hwnd, 38, ref acrylic, sizeof(int)) != 0)
+        {
+            var mica = 2;
+            DwmSetWindowAttribute(hwnd, 38, ref mica, sizeof(int));
+        }
+
+        var corner = 2;
+        DwmSetWindowAttribute(hwnd, 33, ref corner, sizeof(int));
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
@@ -58,4 +77,7 @@ public partial class SetupWindow : Window
         Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
         e.Handled = true;
     }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 }

@@ -45,6 +45,16 @@ public static class LocalNlMath
         @"^(-?\d+(?:\.\d+)?)\s*%?\s*(?:percent|%)\s+(?:of)\s+(-?\d+(?:\.\d+)?)\s*$",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
+    // "percent increase from 7.5 to 7.9"
+    private static readonly Regex PercentChange = new(
+        @"^(?:(?:what(?:'?s| is)\s+)?(?:the\s+)?)?percent(?:age)?\s+(?:increase|decrease|change|growth|drop)\s+(?:from\s+)?(-?\d+(?:\.\d+)?)\s+to\s+(-?\d+(?:\.\d+)?)\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    // "increase from 7 to 9" / "whats the increase from 7 to 9" (absolute, not %)
+    private static readonly Regex AbsoluteChange = new(
+        @"^(?:(?:what(?:'?s| is)\s+)?(?:the\s+)?)?(?:increase|decrease|change|difference|growth|drop)\s+from\s+(-?\d+(?:\.\d+)?)\s+to\s+(-?\d+(?:\.\d+)?)\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
     private static readonly Regex MeanOf = new(
         @"^(?:mean|average|avg)\s+(?:of\s+)?(.+)$",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
@@ -108,6 +118,8 @@ public static class LocalNlMath
         if (TryPair(PlusInfix, t, "+", out expression)) return true;
         if (TrySubtract(t, out expression)) return true;
         if (TryPair(MinusInfix, t, "-", out expression)) return true;
+        if (TryPercentChange(t, out expression)) return true;
+        if (TryAbsoluteChange(t, out expression)) return true;
         if (TryPercent(t, out expression)) return true;
         if (TryFrequencyMean(t, out expression)) return true;
         if (TryChoosePermFact(t, out expression)) return true;
@@ -174,6 +186,29 @@ public static class LocalNlMath
         var m = PercentOf.Match(t);
         if (!m.Success) return false;
         expression = $"({m.Groups[1].Value}/100)*{m.Groups[2].Value}";
+        return true;
+    }
+
+    private static bool TryPercentChange(string t, out string expression)
+    {
+        expression = "";
+        var m = PercentChange.Match(t);
+        if (!m.Success) return false;
+        // ((to - from) / from) * 100
+        expression = $"(({m.Groups[2].Value}-{m.Groups[1].Value})/{m.Groups[1].Value})*100";
+        return true;
+    }
+
+    private static bool TryAbsoluteChange(string t, out string expression)
+    {
+        expression = "";
+        // Don't steal percent asks
+        if (Regex.IsMatch(t, @"\bpercent(?:age)?\b|%", RegexOptions.IgnoreCase))
+            return false;
+        var m = AbsoluteChange.Match(t);
+        if (!m.Success) return false;
+        // to - from
+        expression = $"{m.Groups[2].Value}-{m.Groups[1].Value}";
         return true;
     }
 
