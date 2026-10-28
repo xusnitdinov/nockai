@@ -36,6 +36,8 @@ public sealed class GroqParser : IDisposable
         - numbers to compute, or solve for n/x -> calc.
         - Prefer explain over unknown whenever the topic is math-related.
         - Prefer calc over explain when they want a number.
+        - Bare "explain"/"how"/"why"/"steps"/"help" with NO math topic and NO prior messages
+          -> {"kind":"unknown"}. Do NOT invent a problem. Do NOT reuse examples from this prompt.
 
         FOLLOW-UPS (very important):
         - Prior messages are the SAME math conversation.
@@ -62,7 +64,8 @@ public sealed class GroqParser : IDisposable
         ALGEBRA / SOLVE:
         - Rearrange to a numeric expression for the unknown.
         - 12n=144 -> {"kind":"calc","expression":"144/12"}
-        - 19n = 6*29 + 7*(n-6) -> {"kind":"calc","expression":"(6*29-7*6)/(19-7)"}
+        - 2x+4=10 -> {"kind":"calc","expression":"(10-4)/2"}
+        - Never copy these examples into an explain reply unless the user typed that same problem.
 
         EXPLAIN markdown (under ~140 words):
         - **bold** key terms
@@ -104,6 +107,10 @@ public sealed class GroqParser : IDisposable
     {
         var cleaned = NormalizeUserText(naturalLanguage);
         var hasHistory = history is { Count: > 0 };
+
+        // Bare "explain" with no topic + no history: model used to parrot prompt examples
+        if (!hasHistory && IsBarePrompt(cleaned))
+            return AiReply.Unknown();
 
         var reply = await AskAsync(cleaned, history, ct).ConfigureAwait(false);
 
@@ -167,10 +174,13 @@ public sealed class GroqParser : IDisposable
             return false;
 
         var lower = expression.ToLowerInvariant();
+        // Longer names first so "ncr" wins over stray letters inside longer tokens
         string[] fns =
         [
-            "sqrt", "abs", "sin", "cos", "tan", "log", "ln", "mean", "median", "mode",
-            "sum", "min", "max", "stdev", "std", "floor", "ceil", "round", "pi", "e"
+            "factorial", "variance", "average", "median", "stdev", "choose",
+            "sqrt", "abs", "sin", "cos", "tan", "log", "ln", "mean", "mode",
+            "sum", "min", "max", "std", "var", "floor", "ceil", "round",
+            "ncr", "npr", "fact", "gcd", "lcm", "range", "pi", "e"
         ];
         var scrubbed = lower;
         foreach (var f in fns)
@@ -205,6 +215,35 @@ public sealed class GroqParser : IDisposable
             "same", "show", "detail", "details", "continue", "go on", "pls", "please"
         ];
         return cues.Any(c => lower.Contains(c, StringComparison.Ordinal)) || lower.Length <= 40;
+    }
+
+    /// <summary>
+    /// "explain" / "how" / "why" with nothing to explain - not a real math ask.
+    /// </summary>
+    public static bool IsBarePrompt(string input)
+    {
+        var lower = Regex.Replace(input.Trim().ToLowerInvariant(), @"[.!?]+$", "").Trim();
+        if (lower.Length == 0)
+            return true;
+
+        // strip leftover slang the normalizer may have left
+        lower = SlangPrefix.Replace(lower, "").Trim();
+        lower = Regex.Replace(lower, @"[.!?]+$", "").Trim();
+
+        string[] bare =
+        [
+            "explain", "explain this", "explain that", "explain please", "explain pls",
+            "how", "why", "what", "help", "help me", "steps", "show steps", "show",
+            "teach", "teach me", "solve", "calculate", "compute", "math", "idk"
+        ];
+        if (bare.Any(b => lower.Equals(b, StringComparison.Ordinal)))
+            return true;
+
+        // "explain please bro" etc. still no topic
+        if (Regex.IsMatch(lower, @"^(explain|how|why|what|help|teach|solve)(\s+(me|this|that|pls|plz|please|bro|dude))?$"))
+            return true;
+
+        return false;
     }
 
     private async Task<AiReply> AskAsync(

@@ -71,6 +71,11 @@ public sealed class CalculatorService
 
         var hasHistory = history is { Count: > 0 };
 
+        // "explain" alone - don't hit Groq (it used to invent/prompt-leak an equation)
+        if (!hasHistory && GroqParser.IsBarePrompt(input))
+            return CalcResult.Explain(
+                "What should I explain? Type a topic like **mean**, or paste an equation.");
+
         // Local-first: pure symbols
         if (!hasHistory &&
             _math.LooksLikeSymbolicMath(input) &&

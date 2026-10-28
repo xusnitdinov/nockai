@@ -218,21 +218,37 @@ public partial class MainWindow : Window
         _evalCts = new CancellationTokenSource();
         var ct = _evalCts.Token;
         var gen = Interlocked.Increment(ref _evalGeneration);
+        var isFollowUp = history is { Count: > 0 };
+        var preserved = isFollowUp && _lastResult is { Ok: true } ? _lastResult : null;
 
         SetBusy(true);
 
         try
         {
             var result = await _calculator.EvaluateAsync(text, history, ct).ConfigureAwait(true);
-            if (gen != _evalGeneration || ct.IsCancellationRequested)
+
+            // Superseded by a newer query - that request owns busy UI
+            if (gen != _evalGeneration)
                 return;
+
+            // Cancelled (Esc / hide) - clear spinner and restore prior answer if any
+            if (ct.IsCancellationRequested)
+            {
+                FinishBusy(preserved);
+                return;
+            }
 
             SetBusy(false);
 
-            // Follow-up fail: keep the previous good answer on screen (don't flash ???)
-            var isFollowUp = history is { Count: > 0 };
-            if (!(isFollowUp && !result.Ok && _history.Count > 0))
-                ShowResult(result);
+            // Follow-up fail: restore previous good answer (busy already hid the panels)
+            if (isFollowUp && !result.Ok && preserved is not null)
+            {
+                ShowResult(preserved);
+                FollowUpPanel.Visibility = Visibility.Visible;
+                return;
+            }
+
+            ShowResult(result);
 
             if (appendToHistory && result.Ok)
             {
@@ -256,13 +272,34 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException)
         {
+            if (gen != _evalGeneration)
+                return;
+            FinishBusy(preserved);
         }
         catch (Exception)
         {
-            if (gen != _evalGeneration) return;
+            if (gen != _evalGeneration)
+                return;
+
             SetBusy(false);
+            // Follow-up outage: keep prior answer, don't flash ???
+            if (isFollowUp && preserved is not null)
+            {
+                ShowResult(preserved);
+                FollowUpPanel.Visibility = Visibility.Visible;
+                FlashFooter("Retry failed");
+                return;
+            }
+
             ShowUnknown();
         }
+    }
+
+    private void FinishBusy(CalcResult? restore)
+    {
+        SetBusy(false);
+        if (restore is not null)
+            ShowResult(restore);
     }
 
     private void ShowResult(CalcResult result)

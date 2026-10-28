@@ -39,10 +39,21 @@ if (-not (Test-Path $secretsUser) -and (Test-Path $example)) {
     Write-Host "No API key yet - first launch will ask for a Groq key." -ForegroundColor DarkYellow
 }
 
+$w = New-Object -ComObject WScript.Shell
+
+# Start Menu (so Windows Search finds it under Apps)
+$programs = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
+$startMenuLnk = Join-Path $programs "NockAI.lnk"
+$menu = $w.CreateShortcut($startMenuLnk)
+$menu.TargetPath = $Exe
+$menu.WorkingDirectory = $Out
+$menu.Description = "NockAI - Ctrl+Space calculator"
+$menu.Save()
+Write-Host "Start Menu shortcut: $startMenuLnk" -ForegroundColor Green
+
 if (-not $NoStartup) {
     $startup = [Environment]::GetFolderPath("Startup")
     $lnkPath = Join-Path $startup "NockAI.lnk"
-    $w = New-Object -ComObject WScript.Shell
     $lnk = $w.CreateShortcut($lnkPath)
     $lnk.TargetPath = $Exe
     $lnk.WorkingDirectory = $Out
