@@ -2,13 +2,18 @@
 
 Kotlin + Jetpack Compose companion app. Same Groq math brain as the Windows overlay - normal full-screen chat UI (not a system overlay).
 
-## Requirements
+## Download APK
 
-- Android Studio / JDK 17+ (Android Studio JBR works)
-- Android SDK 35
-- Phone or emulator, API 26+
+Grab the prebuilt APK from GitHub Releases (no Android Studio needed):
 
-## Build APK
+- **[nockai-android-debug.apk](https://github.com/xusnitdinov/nockai/releases/download/v0.2.0/nockai-android-debug.apk)**
+- All releases: https://github.com/xusnitdinov/nockai/releases
+
+Install on your phone (allow unknown sources). Paste your Groq API key on first launch.
+
+## Build from source
+
+Needs Android Studio / JDK 17+ (Android Studio JBR works) and Android SDK 35.
 
 ```powershell
 cd android
@@ -16,17 +21,13 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 .\gradlew.bat assembleDebug
 ```
 
-APK path:
+APK output:
 
 `android/app/build/outputs/apk/debug/app-debug.apk`
-
-Install:
 
 ```powershell
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
-
-Or copy the APK to your phone and open it (allow install from unknown sources).
 
 ## First launch
 

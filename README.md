@@ -1,10 +1,22 @@
 # NockAI
 
-Win11 hotkey calculator. **Ctrl+Space**, type math or English, get an answer. Tray app, low RAM.
+Win11 hotkey calculator. **Ctrl+Space**, type math or English, get an answer. Tray app, low RAM. Also has an **Android** companion APK (math chat - same Groq brain).
 
 AI turns natural language into an expression. **mXparser** does the actual math - so the model doesn't invent the number.
 
-![.NET 9](https://img.shields.io/badge/.NET-9-512BD4) ![Windows](https://img.shields.io/badge/Windows-11%20%2F%2010-0078D4) ![License](https://img.shields.io/badge/license-MIT-green) ![npm](https://img.shields.io/npm/v/@xusnitdinov/nockai)
+![.NET 9](https://img.shields.io/badge/.NET-9-512BD4) ![Windows](https://img.shields.io/badge/Windows-11%20%2F%2010-0078D4) ![Android](https://img.shields.io/badge/Android-APK-3DDC84) ![License](https://img.shields.io/badge/license-MIT-green) ![npm](https://img.shields.io/npm/v/@xusnitdinov/nockai)
+
+## Install (Android)
+
+Download the APK from **[Releases](https://github.com/xusnitdinov/nockai/releases/latest)**:
+
+- [`nockai-android-debug.apk`](https://github.com/xusnitdinov/nockai/releases/download/v0.2.0/nockai-android-debug.apk)
+
+Sideload it (allow install from unknown sources). First launch asks for your [Groq API key](https://console.groq.com/keys) - same key as Windows.
+
+Phone UI is a normal math chat app (query + follow-ups + AI settings). Not a floating overlay like Ctrl+Space.
+
+Build from source: see [android/README.md](android/README.md).
 
 ## Install (Windows)
 
@@ -79,9 +91,9 @@ If a key ever leaked in chat, rotate it in the [Groq console](https://console.gr
 
 ## Stack
 
-- .NET 9 WPF + Win11 acrylic / rounded chrome
-- Groq for NL parsing
-- mXparser for evaluation
+- Windows: .NET 9 WPF + Win11 acrylic / rounded chrome + mXparser
+- Android: Kotlin + Jetpack Compose (`android/`)
+- Groq for NL parsing on both
 
 ## License
 
