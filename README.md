@@ -10,11 +10,11 @@ AI turns natural language into an expression. **mXparser** does the actual math 
 
 Download the APK from **[Releases](https://github.com/xusnitdinov/nockai/releases/latest)**:
 
-- [`nockai-android-debug.apk`](https://github.com/xusnitdinov/nockai/releases/download/v0.2.0/nockai-android-debug.apk)
+- [`nockai-android-debug.apk`](https://github.com/xusnitdinov/nockai/releases/download/v0.3.0/nockai-android-debug.apk) (v0.3.0)
 
 Sideload it (allow install from unknown sources). First launch asks for your [Groq API key](https://console.groq.com/keys) - same key as Windows.
 
-Phone UI is a normal math chat app (query + follow-ups + AI settings). Not a floating overlay like Ctrl+Space.
+Phone UI is a math chat app + optional **bottom bubble** (Gemini-style pill over other apps). Tap **Show bottom bubble** and allow “Display over other apps”.
 
 Build from source: see [android/README.md](android/README.md).
 
