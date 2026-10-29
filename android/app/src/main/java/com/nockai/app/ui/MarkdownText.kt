@@ -76,5 +76,6 @@ fun MarkdownText(markdown: String, modifier: Modifier = Modifier) {
         color = TextSecondary,
         fontSize = 16.sp,
         lineHeight = 24.sp,
+        fontFamily = Outfit,
     )
 }
