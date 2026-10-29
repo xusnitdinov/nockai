@@ -36,6 +36,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.BubbleChart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,6 +46,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
@@ -177,11 +179,13 @@ private fun MaterialThemeDisplay() = TextStyle(
 fun MainScreen(
     ui: UiState,
     settings: AppSettings,
+    bubbleOn: Boolean,
     onQuery: (String) -> Unit,
     onFollowUp: (String) -> Unit,
     onSubmit: () -> Unit,
     onFollowSubmit: () -> Unit,
     onOpenSettings: () -> Unit,
+    onToggleBubble: () -> Unit,
 ) {
     val clipboard = LocalClipboardManager.current
     val hasResult = ui.result != null && ui.result.kind != CalcResultKind.Empty
@@ -221,9 +225,11 @@ fun MainScreen(
                         busy = ui.busy,
                         error = ui.error,
                         examples = examples,
+                        bubbleOn = bubbleOn,
                         onQuery = onQuery,
                         onSubmit = onSubmit,
                         onExample = { onQuery(it); onSubmit() },
+                        onToggleBubble = onToggleBubble,
                     )
                 } else {
                     ResultHome(
@@ -247,9 +253,11 @@ private fun EmptyHome(
     busy: Boolean,
     error: String?,
     examples: List<String>,
+    bubbleOn: Boolean,
     onQuery: (String) -> Unit,
     onSubmit: () -> Unit,
     onExample: (String) -> Unit,
+    onToggleBubble: () -> Unit,
 ) {
     Column(
         Modifier
@@ -303,6 +311,36 @@ private fun EmptyHome(
             } else {
                 Text("Calculate", fontFamily = Outfit, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
+        }
+
+        Spacer(Modifier.height(10.dp))
+        OutlinedButton(
+            onClick = onToggleBubble,
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 440.dp)
+                .height(48.dp),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                if (bubbleOn) Accent.copy(alpha = 0.7f) else CardStroke,
+            ),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = if (bubbleOn) Accent else TextSecondary,
+            ),
+        ) {
+            Icon(
+                Icons.Outlined.BubbleChart,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.size(8.dp))
+            Text(
+                if (bubbleOn) "Bubble on · tap to stop" else "Show bottom bubble",
+                fontFamily = Outfit,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+            )
         }
 
         error?.let {

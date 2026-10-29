@@ -33,7 +33,13 @@ adb install -r app\build\outputs\apk\debug\app-debug.apk
 
 Paste your Groq API key (same as Windows). Settings gear → AI tone, profile prompt, history, temp, tokens.
 
+## Bottom bubble (Gemini-style)
+
+On the home screen tap **Show bottom bubble**. Android will ask for “Display over other apps”. Allow it.
+
+A clean pill docks at the bottom of the screen over any app. Tap → sheet opens → ask math → collapse with the handle. X stops the bubble (or use the notification Stop action).
+
 ## Notes
 
 - Windows WPF app is unchanged
-- Floating bubble / Accessibility overlay is not in v1
+- Bubble needs overlay permission (sideload-friendly; Play Store later is stricter)
