@@ -30,4 +30,5 @@ Desktop.ini
 android/local.properties
 android/.gradle/
 android/**/build/
+android/.kotlin/
 *.apk
